@@ -8,6 +8,8 @@
 
 Audit any live URL and get a portable, print-ready HTML report that tells a business owner exactly what's broken, who it hurts, and what it costs — no jargon.
 
+![Site audit report preview — GitHub.com scored an F](docs/report-preview.png)
+
 ## Quick start
 
 ```bash

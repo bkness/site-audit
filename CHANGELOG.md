@@ -1,0 +1,38 @@
+# Changelog
+
+All notable changes to this project are documented here.
+Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.1.2] — 2026-07-15
+
+### Added
+- README screenshot preview showing a live audit output (GitHub.com scored an F).
+
+## [0.1.1] — 2026-07-15
+
+### Added
+- `LICENSE` file (MIT).
+- `funding` field pointing to author's portfolio.
+- This changelog.
+
+## [0.1.0] — 2026-07-15
+
+Initial release.
+
+### Added
+- Static-HTML audit engine covering 5 categories: Accessibility, SEO, Performance, Security, Technical.
+- 33+ rules across all categories, each tagged with a confidence label (`high-confidence` vs `runtime-limited`).
+- Business-facing impact text for every high-frequency rule — findings explain the consequence, not just the technical detail.
+- Three audit profiles (`balanced`, `strict`, `enterprise`) with per-profile thresholds for image weight and lazy-loading tolerance.
+- CLI flags: `--profile`, `--min-level`, `--show-confidence`.
+- Beautiful, portable HTML report output with:
+  - Letter grade (A–F) computed from severity-weighted findings.
+  - "What's costing you the most right now" top-issues callout.
+  - Category-grouped findings with severity badges and copper accent design.
+  - Print-ready styling.
+- Image byte-size probing via HEAD requests with Range-request fallback, timeouts, and concurrency limits.
+- Custom lazy-loading detection (Intersection Observer, `data-src` patterns, popular libraries) to reduce false positives on modern SPAs.
+- Brand-title leniency for well-known domains (opt-in via `balanced` profile).
+
+### Notes
+- Static HTML analysis only — runtime metrics (Core Web Vitals, focus management, header-based CSP) are out of scope and honestly flagged as `runtime-limited` when relevant.
