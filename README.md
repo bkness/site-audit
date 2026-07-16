@@ -53,6 +53,52 @@ npx @bkness/site-audit https://example.com --min-level warn
 npx @bkness/site-audit https://example.com --min-level error
 ```
 
+## JSON output for pipelines and CI
+
+Pass `--json` to skip the HTML report and output a single JSON object to stdout. Perfect for piping into `jq`, driving custom renderers, or gating CI builds:
+
+```bash
+npx @bkness/site-audit https://example.com --json | jq '.grade'
+```
+
+**Exit codes** are CI-friendly:
+- `0` — clean audit, no errors
+- `1` — audit ran fine but found errors (post-`--min-level` filter)
+- `2` — the audit itself failed (network error, parse error)
+
+**Gate a build on zero errors:**
+
+```bash
+npx @bkness/site-audit https://your-app.vercel.app --min-level error --json > audit.json \
+  || { echo "Audit found errors — see audit.json"; exit 1; }
+```
+
+**Schema:**
+
+```json
+{
+  "url": "https://example.com/",
+  "auditedAt": "2026-07-16T04:55:21.000Z",
+  "profile": "balanced",
+  "minLevel": "info",
+  "title": "Page title",
+  "description": "Meta description...",
+  "score": 44,
+  "grade": "F",
+  "counts": { "error": 3, "warn": 6, "info": 5 },
+  "findings": [
+    {
+      "level": "error",
+      "category": "accessibility",
+      "rule": "a11y-link-name-missing",
+      "message": "2 links missing an accessible name.",
+      "confidence": "high-confidence",
+      "impact": "Screen readers announce these as just 'link'..."
+    }
+  ]
+}
+```
+
 ## Show confidence tags
 
 Display whether each finding is `high-confidence` (deterministic from HTML) or `runtime-limited` (can't be verified without a browser):

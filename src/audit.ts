@@ -106,7 +106,7 @@ export const levelRank: Record<FindingLevel, number> = {
     error: 2
 };
 
-const USAGE = 'Usage: npx tsx src/audit.ts <url> [--profile balanced|strict|enterprise] [--min-level info|warn|error] [--show-confidence]';
+const USAGE = 'Usage: npx tsx src/audit.ts <url> [--profile balanced|strict|enterprise] [--min-level info|warn|error] [--show-confidence] [--json]';
 
 export function countFindingsByLevel(findings: Finding[]): Record<FindingLevel, number> {
     return findings.reduce(
@@ -116,6 +116,34 @@ export function countFindingsByLevel(findings: Finding[]): Record<FindingLevel, 
         },
         { error: 0, warn: 0, info: 0 } as Record<FindingLevel, number>
     );
+}
+
+// Score model: start at 100, deduct per finding by severity.
+// Errors hurt most since they're high-confidence, concrete problems.
+export const LEVEL_PENALTY: Record<FindingLevel, number> = {
+    error: 9,
+    warn: 4,
+    info: 1
+};
+
+export type Grade = { letter: string; band: 'good' | 'fair' | 'poor' };
+
+export function computeScore(findings: Finding[]): number {
+    const raw = findings.reduce((score, finding) => score - LEVEL_PENALTY[finding.level], 100);
+    return Math.max(raw, 0);
+}
+
+export function scoreToGrade(score: number): Grade {
+    if (score >= 90) return { letter: 'A', band: 'good' };
+    if (score >= 80) return { letter: 'B', band: 'good' };
+    if (score >= 70) return { letter: 'C', band: 'fair' };
+    if (score >= 60) return { letter: 'D', band: 'fair' };
+    return { letter: 'F', band: 'poor' };
+}
+
+export function filterFindingsByMinLevel(findings: Finding[], minLevel: FindingLevel): Finding[] {
+    const threshold = levelRank[minLevel];
+    return findings.filter((finding) => levelRank[finding.level] >= threshold);
 }
 
 function normalizeText(value: string): string {
@@ -881,11 +909,12 @@ async function collectAudit($: ReturnType<typeof load>, url: string, config: Aud
     return { title, description, findings };
 }
 
-function parseCliArgs(args: string[]): { url: string | null; profile: AuditProfile; minLevel: FindingLevel; showConfidence: boolean } {
+function parseCliArgs(args: string[]): { url: string | null; profile: AuditProfile; minLevel: FindingLevel; showConfidence: boolean; json: boolean } {
     let url: string | null = null;
     let profile: AuditProfile = 'balanced';
     let minLevel: FindingLevel = 'info';
     let showConfidence = false;
+    let json = false;
     const isAuditProfile = (value: string | undefined): value is AuditProfile => {
         return value === 'balanced' || value === 'strict' || value === 'enterprise';
     };
@@ -947,6 +976,11 @@ function parseCliArgs(args: string[]): { url: string | null; profile: AuditProfi
             continue;
         }
 
+        if (value === '--json') {
+            json = true;
+            continue;
+        }
+
         if (value.startsWith('--')) {
             throw new Error(`Unknown option: ${value}`);
         }
@@ -962,15 +996,36 @@ function parseCliArgs(args: string[]): { url: string | null; profile: AuditProfi
         throw new Error(`Unexpected argument: ${value}`);
     }
 
-    return { url, profile, minLevel, showConfidence };
+    return { url, profile, minLevel, showConfidence, json };
 }
 
-async function audit(url: string, config: AuditConfig, reportOptions: ReportOptions): Promise<void> {
+async function audit(url: string, config: AuditConfig, reportOptions: ReportOptions, jsonMode: boolean): Promise<number> {
     const html = await fetchHtml(url);
     const $ = load(html);
     const summary = await collectAudit($, url, config);
 
-    const counts = countFindingsByLevel(summary.findings);
+    const visibleFindings = filterFindingsByMinLevel(summary.findings, reportOptions.minLevel);
+    const counts = countFindingsByLevel(visibleFindings);
+    const score = computeScore(visibleFindings);
+    const grade = scoreToGrade(score);
+
+    if (jsonMode) {
+        const payload = {
+            url,
+            auditedAt: new Date().toISOString(),
+            profile: config.profile,
+            minLevel: reportOptions.minLevel,
+            title: summary.title,
+            description: summary.description,
+            score,
+            grade: grade.letter,
+            counts,
+            findings: visibleFindings
+        };
+        process.stdout.write(JSON.stringify(payload, null, 2) + '\n');
+        return counts.error;
+    }
+
     const hostname = new URL(url).hostname;
     const domainSlug = hostname.replace(/[^a-z0-9]/gi, '-');
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
@@ -982,6 +1037,7 @@ async function audit(url: string, config: AuditConfig, reportOptions: ReportOpti
 
     console.log(`audited ${hostname} [${config.profile}] — ${counts.error} error${counts.error === 1 ? '' : 's'}, ${counts.warn} warning${counts.warn === 1 ? '' : 's'}, ${counts.info} info`);
     console.log(`report → ${outPath}`);
+    return counts.error;
 }
 
 const cli = ((): ReturnType<typeof parseCliArgs> => {
@@ -995,7 +1051,7 @@ const cli = ((): ReturnType<typeof parseCliArgs> => {
     }
 })();
 
-const { url, profile, minLevel, showConfidence } = cli;
+const { url, profile, minLevel, showConfidence, json } = cli;
 
 if (!url) {
     console.error(USAGE);
@@ -1008,8 +1064,10 @@ const reportOptions: ReportOptions = {
     showConfidence
 };
 
-audit(url, config, reportOptions).catch((error: unknown) => {
+audit(url, config, reportOptions, json).then((errorCount) => {
+    process.exit(errorCount > 0 ? 1 : 0);
+}).catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Audit failed: ${message}`);
-    process.exit(1);
+    process.exit(2);
 });

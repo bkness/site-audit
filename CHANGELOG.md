@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-07-16
+
+### Added
+- `--json` flag: outputs the audit as a single JSON object to stdout, skipping the HTML report entirely. Includes `url`, `auditedAt`, `profile`, `minLevel`, `title`, `description`, `score`, `grade`, `counts`, and `findings[]`. Ideal for piping into `jq`, CI scripts, and custom renderers.
+- Exit code behavior: exits `1` if any errors are found (post-min-level filter), `0` if clean, `2` if the audit itself fails (network/parse error). Enables CI gating: `site-audit https://x.com --min-level error --json > audit.json || echo "failed audit"`.
+- Score and grade computation moved from `renderReport.ts` to `audit.ts` as exported functions (`computeScore`, `scoreToGrade`), single source of truth for both HTML and JSON output.
+
+### Example
+```bash
+# Pipe into jq
+npx @bkness/site-audit https://example.com --json | jq '.grade'
+
+# CI gate: fail build if any errors
+npx @bkness/site-audit https://example.com --min-level error --json > audit.json
+```
+
 ## [0.1.3] — 2026-07-15
 
 ### Changed

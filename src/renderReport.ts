@@ -1,13 +1,8 @@
-import type { AuditSummary, AuditConfig, ReportOptions, Finding, FindingLevel, FindingCategory } from './audit.js';
-import { levelOrder, categoryOrder, levelRank, countFindingsByLevel } from './audit.js';
+import type { AuditSummary, AuditConfig, ReportOptions, Finding, FindingCategory } from './audit.js';
+import { levelOrder, categoryOrder, levelRank, countFindingsByLevel, computeScore, scoreToGrade, filterFindingsByMinLevel } from './audit.js';
 
 function escapeHtml(s: string): string {
     return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
-}
-
-function filterFindingsByMinLevel(findings: Finding[], minLevel: FindingLevel): Finding[] {
-    const threshold = levelRank[minLevel];
-    return findings.filter((finding) => levelRank[finding.level] >= threshold);
 }
 
 // Category labels — acronyms get proper casing instead of naive Title Case.
@@ -26,29 +21,6 @@ const CATEGORY_CODES: Record<FindingCategory, string> = {
     security: 'SEC',
     technical: 'TECH'
 };
-
-// Score model: start at 100, deduct per finding by severity.
-// Errors hurt the most since they're high-confidence, concrete problems.
-const LEVEL_PENALTY: Record<FindingLevel, number> = {
-    error: 9,
-    warn: 4,
-    info: 1
-};
-
-type Grade = { letter: string; band: 'good' | 'fair' | 'poor' };
-
-function computeScore(findings: Finding[]): number {
-    const raw = findings.reduce((score, finding) => score - LEVEL_PENALTY[finding.level], 100);
-    return Math.max(raw, 0);
-}
-
-function scoreToGrade(score: number): Grade {
-    if (score >= 90) return { letter: 'A', band: 'good' };
-    if (score >= 80) return { letter: 'B', band: 'good' };
-    if (score >= 70) return { letter: 'C', band: 'fair' };
-    if (score >= 60) return { letter: 'D', band: 'fair' };
-    return { letter: 'F', band: 'poor' };
-}
 
 // Pick the highest-signal findings for the top-issues callout:
 // errors first, then warnings, capped at 3, high-confidence preferred.
