@@ -3,6 +3,11 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] — 2026-07-16
+
+### Fixed
+- Published `0.2.0` shipped with a stale build — the `--json` flag was documented but the compiled output on npm didn't include the parser code. Re-published with a clean rebuild. No source changes; same features as 0.2.0 intended.
+
 ## [0.2.0] — 2026-07-16
 
 ### Added
