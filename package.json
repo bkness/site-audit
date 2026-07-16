@@ -1,6 +1,6 @@
 {
   "name": "@bkness/site-audit",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Fast, opinionated website audit — SEO, accessibility, performance, security, technical. Generates a beautiful, portable HTML report with plain-English impact for every finding.",
   "type": "module",
   "bin": {

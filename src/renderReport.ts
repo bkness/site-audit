@@ -384,40 +384,7 @@ export function renderReport(url: string, summary: AuditSummary, config: AuditCo
             padding: 1rem 0;
         }
 
-        /* ---------- CTA + footer ---------- */
-        .cta {
-            margin: 0 2rem 2rem;
-            padding: 1.75rem;
-            background: var(--ink);
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .cta h2 {
-            font-family: 'Fraunces', serif;
-            color: white;
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .cta p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.88rem;
-            margin-bottom: 1.1rem;
-        }
-
-        .cta a {
-            display: inline-block;
-            background: var(--amber);
-            color: var(--ink);
-            font-weight: 600;
-            font-size: 0.88rem;
-            padding: 0.7rem 1.5rem;
-            border-radius: 6px;
-            text-decoration: none;
-        }
-
+        /* ---------- Footer ---------- */
         .footer {
             background: var(--bg);
             border-top: 1px solid var(--border);
@@ -437,7 +404,6 @@ export function renderReport(url: string, summary: AuditSummary, config: AuditCo
         @media print {
             body { padding: 0; background: white; }
             .container { box-shadow: none; }
-            .cta { display: none; }
         }
     </style>
 </head>
@@ -502,12 +468,6 @@ export function renderReport(url: string, summary: AuditSummary, config: AuditCo
                     </div>`).join('')}
                 </div>`;
     }).join('')}
-        </div>
-
-        <div class="cta">
-            <h2>Want these fixed?</h2>
-            <p>DevForge builds and ships fixes for exactly what's flagged above.</p>
-            <a href="https://brandon-kelly.netlify.app">Get a free consult →</a>
         </div>
 
         <div class="footer">

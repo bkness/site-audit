@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] — 2026-07-16
+
+### Removed
+- Hardcoded "Want these fixed? DevForge builds and ships fixes…" CTA block from HTML reports. It was baked into every report, which meant anyone using the tool would be sending their own clients a pitch for someone else's freelance services. Reports now end cleanly at the footer attribution.
+- Follow-up planned: env-var-driven CTA (`SITE_AUDIT_CTA_*`) so any user can wire in their own consult offer without touching source.
+
 ## [0.2.1] — 2026-07-16
 
 ### Fixed
