@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] — 2026-07-15
+
+### Changed
+- HTTP request headers now match a full Chrome browser fingerprint (User-Agent, Sec-CH-UA-*, Sec-Fetch-*, Accept-Language, Upgrade-Insecure-Requests). Significantly reduces 403s from sites with moderate bot detection.
+
+### Known limits
+- Sites behind Cloudflare's JS-challenge protection (e.g. surfline.com) still cannot be audited from a static fetch. This is a fundamental limit of non-browser tools; a `--headless` flag using Puppeteer is planned for a future release.
+
 ## [0.1.2] — 2026-07-15
 
 ### Added
