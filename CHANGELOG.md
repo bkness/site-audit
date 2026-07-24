@@ -3,6 +3,11 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-07-24
+
+### Added
+- **Optional CTA block via env vars.** Set `SITE_AUDIT_CTA_HEADING`, `SITE_AUDIT_CTA_BODY`, `SITE_AUDIT_CTA_LINK_TEXT`, `SITE_AUDIT_CTA_LINK_URL` to inject a "Want these fixed?" pitch block above the footer. All four required — partial config is skipped so a broken pitch never ships. All values HTML-escaped. Hides on print. Freelancers can now use `site-audit` for client outreach without editing source.
+
 ## [0.2.3] — 2026-07-16
 
 ### Added

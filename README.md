@@ -187,6 +187,21 @@ npm run audit:clean            # min-level warn
 npm run audit:debug            # show confidence tags
 ```
 
+## Add your own CTA to reports
+
+If you're using `site-audit` for client work or lead-gen, you can inject a "Want these fixed?" call-to-action block on every generated report by setting four environment variables:
+
+```bash
+export SITE_AUDIT_CTA_HEADING="Want these fixed?"
+export SITE_AUDIT_CTA_BODY="I build and ship fixes for exactly what's flagged above."
+export SITE_AUDIT_CTA_LINK_TEXT="Get a free consult →"
+export SITE_AUDIT_CTA_LINK_URL="https://your-consulting-site.com"
+
+npx @bkness/site-audit https://client-site.com
+```
+
+All four must be set — partial configuration is skipped so a broken pitch never ships. The block appears above the footer and hides on print / PDF export.
+
 ## Sponsor
 
 If `site-audit` saved you a Lighthouse setup or shipped a fix on a client site, consider sponsoring:
