@@ -187,6 +187,15 @@ npm run audit:clean            # min-level warn
 npm run audit:debug            # show confidence tags
 ```
 
+## Sponsor
+
+If `site-audit` saved you a Lighthouse setup or shipped a fix on a client site, consider sponsoring:
+
+- **[GitHub Sponsors](https://github.com/sponsors/bkness)** — recurring or one-time, direct to the maintainer.
+- **[Hire me](https://brandon-kelly.netlify.app)** — freelance web audits, fixes, and full builds. If the report flagged something you'd rather not fix yourself, I can do it.
+
+Sponsors are recognized in [SPONSORS.md](./SPONSORS.md) (when there are some to recognize 🙂).
+
 ## License
 
 MIT © [Brandon Kelly](https://github.com/bkness)

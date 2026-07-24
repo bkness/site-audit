@@ -1,6 +1,6 @@
 {
   "name": "@bkness/site-audit",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Fast, opinionated website audit — SEO, accessibility, performance, security, technical. Generates a beautiful, portable HTML report with plain-English impact for every finding.",
   "type": "module",
   "bin": {
@@ -36,6 +36,10 @@
     "url": "https://github.com/bkness/site-audit/issues"
   },
   "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/bkness"
+    },
     {
       "type": "individual",
       "url": "https://brandon-kelly.netlify.app"
