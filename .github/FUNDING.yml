@@ -1,7 +1,2 @@
-# These providers activate the "Sponsor" button on the GitHub repo page.
-# Uncomment and fill in each line as you set up the account.
-
-github: bkness                # requires GitHub Sponsors approval — apply at https://github.com/sponsors
-# ko_fi: your-ko-fi-username
-# buy_me_a_coffee: your-bmc-username
-# custom: ['https://brandon-kelly.netlify.app']
+github: bkness
+custom: ['https://brandon-kelly.netlify.app']

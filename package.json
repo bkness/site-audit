@@ -1,10 +1,18 @@
 {
   "name": "@bkness/site-audit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Fast, opinionated website audit — SEO, accessibility, performance, security, technical. Generates a beautiful, portable HTML report with plain-English impact for every finding.",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "bin": {
-    "site-audit": "dist/audit.js"
+    "site-audit": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -51,13 +59,13 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "audit": "tsx src/audit.ts",
-    "audit:strict": "tsx src/audit.ts --profile strict",
-    "audit:enterprise": "tsx src/audit.ts --profile enterprise",
-    "audit:clean": "tsx src/audit.ts --min-level warn",
-    "audit:clean-strict": "tsx src/audit.ts --profile strict --min-level warn",
-    "audit:clean-enterprise": "tsx src/audit.ts --profile enterprise --min-level warn",
-    "audit:debug": "tsx src/audit.ts --show-confidence"
+    "audit": "tsx src/cli.ts",
+    "audit:strict": "tsx src/cli.ts --profile strict",
+    "audit:enterprise": "tsx src/cli.ts --profile enterprise",
+    "audit:clean": "tsx src/cli.ts --min-level warn",
+    "audit:clean-strict": "tsx src/cli.ts --profile strict --min-level warn",
+    "audit:clean-enterprise": "tsx src/cli.ts --profile enterprise --min-level warn",
+    "audit:debug": "tsx src/cli.ts --show-confidence"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

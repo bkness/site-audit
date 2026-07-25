@@ -1,9 +1,6 @@
-#!/usr/bin/env node
 import { load } from 'cheerio';
 import type { AnyNode } from 'domhandler';
-import { writeFile, mkdir } from 'node:fs/promises';
 import { fetchHtml } from './fetchHtml.js';
-import { renderReport } from './renderReport.js';
 
 export type FindingLevel = 'info' | 'warn' | 'error';
 export type FindingCategory = 'seo' | 'accessibility' | 'performance' | 'security' | 'technical';
@@ -16,6 +13,18 @@ export type Finding = {
     message: string;
     confidence: FindingConfidence;
     impact?: string;
+};
+
+export type AuditResult = {
+    url: string;
+    auditedAt: string;
+    profile: AuditProfile;
+    minLevel: FindingLevel;
+    summary: AuditSummary;
+    visibleFindings: Finding[];
+    score: number;
+    grade: Grade;
+    counts: Record<FindingLevel, number>;
 };
 
 export type AuditSummary = {
@@ -35,7 +44,7 @@ type CurrencySignals = {
     priceLikeCount: number;
 };
 
-type AuditProfile = 'balanced' | 'strict' | 'enterprise';
+export type AuditProfile = 'balanced' | 'strict' | 'enterprise';
 
 export type AuditConfig = {
     profile: AuditProfile;
@@ -59,7 +68,7 @@ const HEAD_TIMEOUT_MS = 2_500;
 const RANGE_TIMEOUT_MS = 4_000;
 const IMAGE_PROBE_CONCURRENCY = 6;
 
-const PROFILE_CONFIGS: Record<AuditProfile, AuditConfig> = {
+export const PROFILE_CONFIGS: Record<AuditProfile, AuditConfig> = {
     balanced: {
         profile: 'balanced',
         seo: {
@@ -105,8 +114,6 @@ export const levelRank: Record<FindingLevel, number> = {
     warn: 1,
     error: 2
 };
-
-const USAGE = 'Usage: npx tsx src/audit.ts <url> [--profile balanced|strict|enterprise] [--min-level info|warn|error] [--show-confidence] [--json]';
 
 export function countFindingsByLevel(findings: Finding[]): Record<FindingLevel, number> {
     return findings.reduce(
@@ -894,7 +901,7 @@ function runTechnicalChecks($: ReturnType<typeof load>, findings: Finding[]): vo
     runCurrencyGapChecks($, findings);
 }
 
-async function collectAudit($: ReturnType<typeof load>, url: string, config: AuditConfig): Promise<AuditSummary> {
+export async function collectAudit($: ReturnType<typeof load>, url: string, config: AuditConfig): Promise<AuditSummary> {
     const findings: Finding[] = [];
 
     runSeoChecks($, url, findings, config);
@@ -909,97 +916,11 @@ async function collectAudit($: ReturnType<typeof load>, url: string, config: Aud
     return { title, description, findings };
 }
 
-function parseCliArgs(args: string[]): { url: string | null; profile: AuditProfile; minLevel: FindingLevel; showConfidence: boolean; json: boolean } {
-    let url: string | null = null;
-    let profile: AuditProfile = 'balanced';
-    let minLevel: FindingLevel = 'info';
-    let showConfidence = false;
-    let json = false;
-    const isAuditProfile = (value: string | undefined): value is AuditProfile => {
-        return value === 'balanced' || value === 'strict' || value === 'enterprise';
-    };
-    const isFindingLevel = (value: string | undefined): value is FindingLevel => {
-        return value === 'info' || value === 'warn' || value === 'error';
-    };
-
-    for (let index = 0; index < args.length; index += 1) {
-        const value = args[index];
-
-        if (!value) {
-            continue;
-        }
-
-        if (value.startsWith('--profile=')) {
-            const candidate = value.split('=')[1] as AuditProfile | undefined;
-            if (isAuditProfile(candidate)) {
-                profile = candidate;
-                continue;
-            }
-
-            throw new Error('Invalid profile value. Use "balanced", "strict", or "enterprise".');
-        }
-
-        if (value === '--profile') {
-            const candidate = args[index + 1] as AuditProfile | undefined;
-            if (isAuditProfile(candidate)) {
-                profile = candidate;
-                index += 1;
-                continue;
-            }
-
-            throw new Error('Missing or invalid value for --profile. Use "balanced", "strict", or "enterprise".');
-        }
-
-        if (value.startsWith('--min-level=')) {
-            const candidate = value.split('=')[1] as FindingLevel | undefined;
-            if (isFindingLevel(candidate)) {
-                minLevel = candidate;
-                continue;
-            }
-
-            throw new Error('Invalid min level. Use "info", "warn", or "error".');
-        }
-
-        if (value === '--min-level') {
-            const candidate = args[index + 1] as FindingLevel | undefined;
-            if (isFindingLevel(candidate)) {
-                minLevel = candidate;
-                index += 1;
-                continue;
-            }
-
-            throw new Error('Missing or invalid value for --min-level. Use "info", "warn", or "error".');
-        }
-
-        if (value === '--show-confidence') {
-            showConfidence = true;
-            continue;
-        }
-
-        if (value === '--json') {
-            json = true;
-            continue;
-        }
-
-        if (value.startsWith('--')) {
-            throw new Error(`Unknown option: ${value}`);
-        }
-
-        if (/^https?:\/\//i.test(value)) {
-            if (url != null) {
-                throw new Error(`Only one URL can be audited at a time. Received a second: ${value}`);
-            }
-            url = value;
-            continue;
-        }
-
-        throw new Error(`Unexpected argument: ${value}`);
-    }
-
-    return { url, profile, minLevel, showConfidence, json };
-}
-
-async function audit(url: string, config: AuditConfig, reportOptions: ReportOptions, jsonMode: boolean): Promise<number> {
+export async function runAudit(
+    url: string,
+    config: AuditConfig,
+    reportOptions: ReportOptions
+): Promise<AuditResult> {
     const html = await fetchHtml(url);
     const $ = load(html);
     const summary = await collectAudit($, url, config);
@@ -1009,65 +930,15 @@ async function audit(url: string, config: AuditConfig, reportOptions: ReportOpti
     const score = computeScore(visibleFindings);
     const grade = scoreToGrade(score);
 
-    if (jsonMode) {
-        const payload = {
-            url,
-            auditedAt: new Date().toISOString(),
-            profile: config.profile,
-            minLevel: reportOptions.minLevel,
-            title: summary.title,
-            description: summary.description,
-            score,
-            grade: grade.letter,
-            counts,
-            findings: visibleFindings
-        };
-        process.stdout.write(JSON.stringify(payload, null, 2) + '\n');
-        return counts.error;
-    }
-
-    const hostname = new URL(url).hostname;
-    const domainSlug = hostname.replace(/[^a-z0-9]/gi, '-');
-    const stamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-    const outPath = `./reports/${domainSlug}-${stamp}.html`;
-
-    const reportHtml = renderReport(url, summary, config, reportOptions);
-    await mkdir('./reports', { recursive: true });
-    await writeFile(outPath, reportHtml);
-
-    console.log(`audited ${hostname} [${config.profile}] — ${counts.error} error${counts.error === 1 ? '' : 's'}, ${counts.warn} warning${counts.warn === 1 ? '' : 's'}, ${counts.info} info`);
-    console.log(`report → ${outPath}`);
-    return counts.error;
+    return {
+        url,
+        auditedAt: new Date().toISOString(),
+        profile: config.profile,
+        minLevel: reportOptions.minLevel,
+        summary,
+        visibleFindings,
+        score,
+        grade,
+        counts
+    };
 }
-
-const cli = ((): ReturnType<typeof parseCliArgs> => {
-    try {
-        return parseCliArgs(process.argv.slice(2));
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error(`Argument error: ${message}`);
-        console.error(USAGE);
-        process.exit(1);
-    }
-})();
-
-const { url, profile, minLevel, showConfidence, json } = cli;
-
-if (!url) {
-    console.error(USAGE);
-    process.exit(1);
-}
-
-const config = PROFILE_CONFIGS[profile];
-const reportOptions: ReportOptions = {
-    minLevel,
-    showConfidence
-};
-
-audit(url, config, reportOptions, json).then((errorCount) => {
-    process.exit(errorCount > 0 ? 1 : 0);
-}).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`Audit failed: ${message}`);
-    process.exit(2);
-});

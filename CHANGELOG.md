@@ -3,6 +3,17 @@
 All notable changes to this project are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-07-25
+
+### Added
+- **Library API.** `runAudit()` is now importable directly: `import { runAudit, PROFILE_CONFIGS, renderReport } from '@bkness/site-audit'`. Returns a typed `AuditResult` (summary, filtered findings, score, grade, counts, ISO timestamp) — no filesystem writes, no `process.exit`. Safe to call from web UIs, serverless functions, tests, or GitHub Actions.
+- Public types re-exported from the package root: `AuditResult`, `AuditSummary`, `AuditConfig`, `AuditProfile`, `ReportOptions`, `Finding`, `FindingLevel`, `FindingCategory`, `Grade`.
+- Package `exports` field wired to `dist/index.js` with `.d.ts` declarations shipped alongside — clean bare imports with full TypeScript support.
+
+### Changed
+- Internal refactor: `src/audit.ts` split into pure engine (`audit.ts`) + CLI shell (`cli.ts`) + library barrel (`index.ts`). CLI behavior byte-identical to 0.3.0 — same flags, same JSON shape, same exit codes, same HTML report output.
+- CLI `--json` payload now uses `result.auditedAt` (the audit's actual completion time) instead of `new Date()` at serialization. Timestamp is marginally more accurate.
+
 ## [0.3.0] — 2026-07-24
 
 ### Added
