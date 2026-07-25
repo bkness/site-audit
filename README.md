@@ -8,7 +8,9 @@
 
 Audit any live URL and get a portable, print-ready HTML report that tells a business owner exactly what's broken, who it hurts, and what it costs — no jargon.
 
-![Site audit report preview — GitHub.com scored an F](docs/report-preview.png)
+![Site audit report — auditing weballtech.com, scored a B](docs/report-preview.png)
+
+*Sample report — I audited my own portfolio. B (86/100): 3 fixable warnings, zero errors. The tool doesn't hide from itself.*
 
 ## Quick start
 
