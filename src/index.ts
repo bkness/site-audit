@@ -2,7 +2,7 @@
 // Consumers import from here — internal helpers stay in ./audit.js.
 
 // Runtime exports
-export { runAudit, PROFILE_CONFIGS } from './audit.js';
+export { runAudit, PROFILE_CONFIGS, computeScore, scoreToGrade } from './audit.js';
 export { renderReport } from './renderReport.js';
 
 // Type exports

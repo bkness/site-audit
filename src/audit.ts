@@ -738,7 +738,14 @@ async function runPerformanceChecks($: ReturnType<typeof load>, pageUrl: string,
     const scriptCount = $('script[src]').length;
     const blockingScripts = $('head script[src]').filter((_, script) => {
         const node = $(script);
-        return !node.attr('async') && !node.attr('defer') && node.attr('type') !== 'module';
+        const has = (name: string) => node.attr(name) !== undefined;
+        const type = (node.attr('type') ?? '').trim().toLowerCase();
+        // Only classic scripts block rendering. async/defer are boolean attributes
+        // (async="" still counts), module scripts are deferred by default, nomodule
+        // scripts are legacy fallbacks modern browsers never run (Next.js emits one
+        // on every page), and non-JS types like templates aren't executed at all.
+        const isClassicJs = type === '' || type === 'text/javascript' || type === 'application/javascript';
+        return isClassicJs && !has('async') && !has('defer') && !has('nomodule');
     }).length;
     const cssCount = $('link[rel="stylesheet"]').length;
     const lazyMissing = $('img').filter((_, image) => {
